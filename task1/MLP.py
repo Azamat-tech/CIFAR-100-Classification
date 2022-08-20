@@ -119,10 +119,10 @@ def main(args: argparse.Namespace):
         pred_probabilities = model.predict_proba(test_data)[:, 1]
 
         # Evaluating the classification model
-        evaluate(predictions, pred_probabilities, test_data, test_target)
+        evaluate(predictions, pred_probabilities, test_target)
     return
 
-def evaluate(predictions, pred_probabilities, test_data, test_target):
+def evaluate(predictions, pred_probabilities, test_target):
     # Compute accurace
     print(accuracy_score(test_target, predictions))
 
