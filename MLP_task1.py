@@ -2,6 +2,7 @@ import os
 import lzma
 import argparse
 import pickle
+from re import sub
 import sklearn
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,61 +13,11 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import accuracy_score
 
-PEOPLE_ID  = 14
-VEHICLE_ID = 18
-
-class Dataset:
-    dir = "../cifar-100-python/"
-    # Superclasses: 1) people 2) vehicle1
-    def __init__(self):
-        if not os.path.exists(self.dir):
-            raise Exception("CIFAR-100 dataset is not downloaded")
-
-    def load_training_data(self):
-        train_dict = self.unpickle(self.dir + "train")
-
-        data = train_dict['data']
-        target = np.array(train_dict['coarse_labels'])
-
-        # Select People and Vehicle1 superclass
-        people_indexes = np.argwhere(target == PEOPLE_ID)
-        vehicle1_indexes = np.argwhere(target == VEHICLE_ID)
-        # Reshape from 2D to 1D np array for data retrieval and concatenate
-        people_indexes = people_indexes.reshape((len(people_indexes),))
-        vehicle1_indexes = vehicle1_indexes.reshape((len(vehicle1_indexes),))
-        data_indexes = np.concatenate((people_indexes, vehicle1_indexes))
-
-        train_data = data[data_indexes]
-        train_target = target[data_indexes]
-
-        return train_data, train_target        
-
-    def load_testing_data(self):
-        test_dict = self.unpickle(self.dir + "test")
-
-        data = test_dict['data']
-        target = np.array(test_dict['coarse_labels'])
-        
-        # Select People and Vehicle1 superclass
-        people_indexes = np.argwhere(target == PEOPLE_ID)
-        vehicle1_indexes = np.argwhere(target == VEHICLE_ID)
-        # Reshape from 2D to 1D np array for data retrieval and concatenate
-        people_indexes = people_indexes.reshape((len(people_indexes),))
-        vehicle1_indexes = vehicle1_indexes.reshape((len(vehicle1_indexes),))
-        data_indexes = np.concatenate((people_indexes, vehicle1_indexes))
-
-        test_data = data[data_indexes]
-        test_target = target[data_indexes]
-
-        return test_data, test_target
-
-    def unpickle(self, file):
-        with open(file, 'rb') as fo:
-            dict = pickle.load(fo, encoding='latin1')
-        return dict
+# local
+from Dataset import Dataset
 
 def main(args: argparse.Namespace):
-    dataset = Dataset()
+    dataset = Dataset(subclasses=False)
 
     # Training stage
     if not args.test: 

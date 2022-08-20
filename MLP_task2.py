@@ -15,65 +15,11 @@ from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-START_INDEX = 70
-END_INDEX   = 75
-
-class Dataset:
-    dir = "../cifar-100-python/"
-    # Fine classes of Superclass People
-    def __init__(self):
-        if not os.path.exists(self.dir):
-            raise Exception("CIFAR-100 dataset is not downloaded")
-
-    def load_training_data(self):
-        train_dict = self.unpickle(self.dir + "train")
-
-        data = train_dict['data']
-        target = np.array(train_dict['fine_labels'])
-
-        # Select fine classes of People superclass
-        fine_indexes = []
-        for i in range(START_INDEX, END_INDEX):
-            fine_index = np.argwhere(target == i)
-            fine_index = fine_index.reshape((len(fine_index),))
-            fine_indexes.append(fine_index)
-
-        fine_indexes = np.concatenate(fine_indexes)
-        
-        # Get data of those fine indexes
-        train_data = data[fine_indexes]
-        train_target = target[fine_indexes]
-
-        return train_data, train_target
-
-    def load_testing_data(self):
-        test_dict = self.unpickle(self.dir + "test")
-
-        data = test_dict['data']
-        target = np.array(test_dict['fine_labels'])
-
-        # Select fine classes of People superclass
-        fine_indexes = []
-        for i in range(START_INDEX, END_INDEX):
-            fine_index = np.argwhere(target == i)
-            fine_index = fine_index.reshape((len(fine_index),))
-            fine_indexes.append(fine_index)
-
-        fine_indexes = np.concatenate(fine_indexes)
-        
-        # Get data of those fine indexes
-        test_data = data[fine_indexes]
-        test_target = target[fine_indexes]
-
-        return test_data, test_target
-
-    def unpickle(self, file):
-        with open(file, 'rb') as fo:
-            dict = pickle.load(fo, encoding='latin1')
-        return dict
+# local
+from Dataset import Dataset
 
 def main(args: argparse.Namespace):
-    dataset = Dataset()
+    dataset = Dataset(subclasses=True)
 
     # Training stage
     if not args.test: 
