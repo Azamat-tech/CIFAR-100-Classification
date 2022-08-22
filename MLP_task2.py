@@ -1,10 +1,7 @@
-from asyncio import constants
-import os
 import lzma
 import argparse
 import pickle
 import sklearn
-import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.neural_network import MLPClassifier
@@ -29,26 +26,37 @@ def main(args: argparse.Namespace):
         sc = StandardScaler()
         train_data = sc.fit_transform(train_data)
 
-        # Reduce dimensiality of subclasses' pixels into 2 components
+        # Instead of selecting the # components manually,
         # We want the amount of variance explained to be 95%
         pca = PCA(n_components=0.95)
         train_data = pca.fit_transform(train_data)
 
         # Serialize the PCA transformation.
-        with lzma.open("pca", "wb") as transform:
+        with lzma.open(args.pca_path, "wb") as transform:
             pickle.dump(pca, transform)
 
-        model = MLPClassifier(
-            hidden_layer_sizes=(50,50,50), 
-            activation='relu', 
-            solver='adam',
-            alpha=0.001,
-            learning_rate='constant'
-        ).fit(train_data, train_target)
+        # Define the classifier model
+        mlp = MLPClassifier(max_iter=100)
+        
+        # Define the parameter space for MLP classifier
+        # to find the best parameter set
+        parameter_space = { 
+            'hidden_layer_sizes': [(50,50,50), (100,), (20,)],
+            'activation': ['tanh', 'relu'],
+            'solver': ['sgd', 'adam'],
+            'alpha': [0.0001, 0.001, 0.01, 0.1],
+            'learning_rate': ['constant','adaptive'],
+        }
+
+        # Define GridSearch to find the best hyperparameters and their values
+        # runs the exhaustive search over specified parameters
+        # To speed up the process, we use all the processors to run the search (n_jobs=-1)
+        clf = GridSearchCV(mlp, parameter_space, n_jobs=-1, cv=10)
+        clf.fit(train_data, train_target)
 
         # Serialize the model.
         with lzma.open(args.model_path, "wb") as model_file:
-            pickle.dump(model, model_file)
+            pickle.dump(clf, model_file)
 
     # Testing stage
     else:
@@ -60,9 +68,8 @@ def main(args: argparse.Namespace):
         test_data = sc.fit_transform(test_data)
 
         # Load the PCA and reduce dimensiality of testing data
-        with lzma.open("pca", "rb") as transform:
+        with lzma.open(args.pca_path, "rb") as transform:
             pca = pickle.load(transform)
-            # Reduce dimensiality of testing data as well
             test_data = pca.transform(test_data)
 
         # Load trained model
@@ -95,9 +102,8 @@ def evaluate(predictions, pred_probabilities, test_target, classes):
 
     # Plotting the results into a precision-recall curve space
     precision, recall, _ = precision_recall_curve(test_target, pred_probabilities[:, 4], pos_label=classes[4])
-    # precision, recall, threshold = sklearn.metrics.precision_recall_curve(test_target, prediction_probs[:, 4], pos_label=24)
     
-    _, ax = plt.subplots()
+    _, ax = plt.subplots(1, 1, figsize=(6, 7), subplot_kw={'aspect': 'auto'})
     ax.plot(recall, precision, color='purple')
     ax.set_title('Precision-Recall Curve')
     ax.set_ylabel('Precision')
@@ -108,7 +114,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--test", default=False, action="store_true", help="Run on test data")
     parser.add_argument("--model_path", default="MLP_task2.model", type=str, help="Model path")
-
+    parser.add_argument("--pca_path", default="pca_MLPtask2", type=str, help="PCA path")
     args = parser.parse_args([] if "__file__" not in globals() else None)
 
     main(args)

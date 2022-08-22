@@ -1,4 +1,5 @@
 /env
 /cifar-100-python
+/__pycache__
 *.model
-pca
+pca_*
