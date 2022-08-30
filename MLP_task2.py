@@ -76,6 +76,7 @@ def main(args: argparse.Namespace):
         with lzma.open(args.model_path, "rb") as model_file:
             model = pickle.load(model_file)
 
+        print(model.best_params_)
         # Prediction based on the model
         predictions = model.predict(test_data)
 

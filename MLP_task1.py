@@ -97,8 +97,8 @@ def evaluate(predictions, pred_probabilities, test_target):
 
     # Compute macro-averaged precision and recall values
     precision, recall, _, _ = precision_recall_fscore_support(test_target, predictions, average='macro')
-    print("Precision: ", precision)
-    print("Recall", recall)
+    print(f"Precision: {precision:.2f}")
+    print(f"Recall: {recall:.2f}")
 
     # Plotting the results into a precision-recall curve space
     precision, recall, thresholds = precision_recall_curve(test_target, pred_probabilities, pos_label=18)

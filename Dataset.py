@@ -38,6 +38,7 @@ class Dataset:
             people_indexes = people_indexes.reshape((len(people_indexes),))
             vehicle1_indexes = vehicle1_indexes.reshape((len(vehicle1_indexes),))
             indexes = np.concatenate((people_indexes, vehicle1_indexes))
+
         # Get data
         train_data = data[indexes]
         train_target = target[indexes]
